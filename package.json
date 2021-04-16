@@ -1,0 +1,28 @@
+{
+  "name": "phonebook-backend",
+  "version": "1.0.0",
+  "description": "back-end for our phonebook",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ashermanli/phonebook-backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ashermanli/phonebook-backend/issues"
+  },
+  "homepage": "https://github.com/ashermanli/phonebook-backend#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
