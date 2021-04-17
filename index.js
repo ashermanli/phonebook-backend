@@ -6,7 +6,7 @@ const cors = require('cors')
 const app = express()
 app.use(express.json())
 app.use(morgan('tiny'))
-app.use(cors)
+app.use(cors())
 
 
 const unknownEndpoint = (request,response) =>{
