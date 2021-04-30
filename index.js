@@ -1,14 +1,11 @@
+require('dotenv').config()
 const express = require("express");
 const { json } = require("express");
 const morgan = require("morgan");
 const cors = require("cors");
+const Person = require("./src/models/person");
 
-const personModel = require("./models/person");
-const Person = personModel.pers
-const connectDB = () => Person.connect
-
-
-connectDB()
+//Middleware
 const app = express();
 app.use(express.json());
 app.use(morgan("tiny"));
@@ -41,17 +38,18 @@ app.use(express.static("build"));
 // ];
 
 
-// const generateId = () => {
-//   const maxID = persons.length > 0 ? Math.max(...persons.map((p) => p.id)) : 0;
+/* const generateId = () => {
+  const maxID = persons.length > 0 ? Math.max(...persons.map((p) => p.id)) : 0;
 
-//   return maxID + 1;
-// };
+  return maxID + 1;
+}; */
 
 //default page
 app.get("/", (request, response) => {
   response.send("<h1>Hello World</h1>");
 });
 
+//some basic info about our app
 app.get("/info", (request, response) => {
   response.send(`<div>
                         <p>Phonebook has information for ${
@@ -63,15 +61,19 @@ app.get("/info", (request, response) => {
 
 //get all persons of the database
 app.get("/api/persons",  (request, response) => {
-  const persons =  Person.find({});
-  response.json(persons)
+  const persons =  Person.find({})
+  .then((result) => {
+    console.log(result)
+    response.json(result)
+  })
+  .catch(err => console.log(err))
 });
 
 //get a single person of the database
 app.get("/api/persons/:id",  (request, response) => {
   const person =  Person.findById(request.params.id)
+  .then(result => response.json(result))
   .catch(err => response.status(404).json({noPersonFound:'No Person Found!'}))
-  response.json(person)
   
 
   //Development and debugging
@@ -86,7 +88,7 @@ app.get("/api/persons/:id",  (request, response) => {
 
 });
 
-
+//
 app.delete("/api/persons/:id", (request, response) => {
   const id = Number(request.params.id);
 
