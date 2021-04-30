@@ -1,33 +1,10 @@
-const mongoose = require("mongoose");
-require('dotenv').config()
-
-const db = process.env.MONGODB_URI;
-console.log("connecting to ", db);
-
-const connectDB = ()=>{
-  try {
-     mongoose
-    .connect(db, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      useFindAndModify: false,
-      useCreateIndex: true,
-    })
-    console.log("Conntected to MongoDB")
-  }
-  catch(error){
-    console.log("we reached an error")
-    console.log("error connecting to MongoDB");
-    console.log(error.message)
-    process.exit(1)
-  }
-}
-
-
+const mongoose = require('mongoose')
 const personSchema = new mongoose.Schema({
   name: String,
   number: String,
 });
+
+const connect = require('./../../db')
 
 personSchema.set("toJSON", {
   transform: (document, returnedObject) => {
@@ -37,7 +14,4 @@ personSchema.set("toJSON", {
   },
 });
 
-module.exports = {
-  pers: mongoose.model("Person", personSchema),
-  connect: connectDB
-}
+module.exports = mongoose.model('Person', personSchema)
