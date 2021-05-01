@@ -7,10 +7,13 @@ const Person = require("./src/models/person");
 
 //Middleware
 const app = express();
+app.use(express.static("build"));
 app.use(express.json());
 app.use(morgan("tiny"));
 app.use(cors());
-app.use(express.static("build"));
+
+
+
 
 
 // Dev debugging code
@@ -59,6 +62,7 @@ app.get("/info", (request, response) => {
                     </div>`);
 });
 
+/*************************|||||||||********************************/
 //get all persons of the database
 app.get("/api/persons",  (request, response) => {
   const persons =  Person.find({})
@@ -69,11 +73,21 @@ app.get("/api/persons",  (request, response) => {
   .catch(err => console.log(err))
 });
 
+/*************************|||||||||********************************/
 //get a single person of the database
-app.get("/api/persons/:id",  (request, response) => {
+app.get("/api/persons/:id",  (request, response, next) => {
   const person =  Person.findById(request.params.id)
-  .then(result => response.json(result))
-  .catch(err => response.status(404).json({noPersonFound:'No Person Found!'}))
+  .then(result => {
+    if(result){
+      response.json(result)
+    }
+    else{
+      response.status(404).end()
+    }
+  })
+  .catch(err => {
+    next(err)
+  })
   
 
   //Development and debugging
@@ -88,15 +102,28 @@ app.get("/api/persons/:id",  (request, response) => {
 
 });
 
-//
+/*************************|||||||||********************************/
+//delete a person from the database
 app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
+  
 
-  persons = persons.filter((p) => p.id !== id);
+Person.findByIdAndRemove(request.params.id)
+.then(result => {
+  console.log(result)
+  console.log('succesfully delted')
+  response.json(result)
+})
+.catch(error => console.log(error))
 
-  response.status(204).end();
+//cant convert to number as mongodb atlas requires a string for the id
+// const id = Number(request.params.id); 
+  // persons = persons.filter((p) => p.id !== id);
+
+  //response.status(204).end();
 });
 
+/*************************|||||||||********************************/ 
+//add a person to the database
 app.post("/api/persons", (request, response) => {
   const body = request.body;
   if (!body.name) {
@@ -106,9 +133,9 @@ app.post("/api/persons", (request, response) => {
     return response.status(400).json({ error: "missing number" });
   }
 
-  if (persons.some((p) => p.name === body.name)) {
+  /* if (persons.some((p) => p.name === body.name)) {
     return response.status(400).json({ error: "person already exists" });
-  }
+  } */
 
   const person = new Person({
     name: body.name,
@@ -117,13 +144,32 @@ app.post("/api/persons", (request, response) => {
 
   person.save().then((savedPerson) => {
     response.json(savedPerson);
-    mongoose.connection.close();
+    // mongoose.connection.close();
   });
 
   //   console.log(person);
-  persons = persons.concat(person);
+  //persons = persons.concat(person);
   // response.json(person);
 });
+
+/*************************|||||||||********************************/ 
+//update a person on the database
+app.put("/api/persons/:id", (request, response) =>{
+  const body =  request.body
+
+  const update = {
+    name: body.name,
+    number: body.number
+  }
+
+  //{new:true} is required for the response to return our updated entry and rerender the front end
+  Person.findByIdAndUpdate(request.params.id, update, {"new": "true"})
+  .then(updatedPerson => {
+    console.log(updatedPerson)
+    response.json(updatedPerson)
+  })
+  .catch(err => next(error))
+})
 
 //when an a page is not found show them a 404 error
 const unknownEndpoint = (request, response) => {
@@ -131,6 +177,18 @@ const unknownEndpoint = (request, response) => {
 };
 
 app.use(unknownEndpoint);
+
+const errorHandler = (error, request, response, next)=>{
+  console.error(error.message)
+
+  if(error.name === 'CastError'){
+    return response.status(400).send({error:'malformatted id'})
+  }
+
+  next(error)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001;
 
