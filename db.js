@@ -8,7 +8,7 @@ const params = {
     useNewUrlParser: true,
     useCreateIndex: true,
     useUnifiedTopology: true ,
-    dbName: 'people'
+    dbName: 'phonebook-app'
 }
 
 console.log('connecting to the database')
