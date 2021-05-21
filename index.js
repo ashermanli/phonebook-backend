@@ -1,16 +1,16 @@
 require('dotenv').config()
-const express = require("express");
-const { json } = require("express");
-const morgan = require("morgan");
-const cors = require("cors");
-const Person = require("./src/models/person");
+const express = require('express')
+const { json } = require('express')
+const morgan = require('morgan')
+const cors = require('cors')
+const Person = require('./src/models/person')
 
 //Middleware
-const app = express();
-app.use(express.static("build"));
-app.use(express.json());
-app.use(morgan("tiny"));
-app.use(cors());
+const app = express()
+app.use(express.static('build'))
+app.use(express.json())
+app.use(morgan('tiny'))
+app.use(cors())
 
 
 
@@ -49,47 +49,44 @@ app.use(cors());
 }; */
 
 //default page
-app.get("/", (request, response) => {
-  response.send("<h1>Hello World</h1>");
-});
+app.get('/', (request, response) => {
+  response.send('<h1>Hello World</h1>')
+})
 
 //some basic info about our app
-app.get("/info", (request, response) => {
-  response.send(`<div>
-                        <p>Phonebook has information for ${
-                          persons.length
-                        } people</p>
+app.get('/info', (request, response) => {
+  const persons = Person.find({})
+  response.send(`<div> <p>Phonebook has information for ${persons.length} people</p>
                         <p>${new Date()}</p>
-                    </div>`);
-});
+                    </div>`)
+})
 
 /*************************|||||||||********************************/
 //get all persons of the database
-app.get("/api/persons",  (request, response) => {
+app.get('/api/persons',  (request, response) => {
   const persons =  Person.find({})
-  .then((result) => {
-    console.log(result)
-    response.json(result)
-  })
-  .catch(err => console.log(err))
-});
+    .then((result) => {
+      console.log(result)
+      response.json(result)
+    })
+    .catch(err => console.log(err))
+})
 
 /*************************|||||||||********************************/
 //get a single person of the database
-app.get("/api/persons/:id",  (request, response, next) => {
+app.get('/api/persons/:id',  (request, response, next) => {
   const person =  Person.findById(request.params.id)
-  .then(result => {
-    if(result){
-      response.json(result)
-    }
-    else{
-      response.status(404).end()
-    }
-  })
-  .catch(err => {
-    next(err)
-  })
-  
+    .then(result => {
+      if(result){
+        response.json(result)
+      }
+      else{
+        response.status(404).end()
+      }
+    })
+    .catch(err => {
+      next(err)
+    })
 
   //Development and debugging
   // const id = Number(request.params.id);
@@ -101,37 +98,36 @@ app.get("/api/persons/:id",  (request, response, next) => {
   //   response.json(404)
   // }
 
-});
+})
 
 /*************************|||||||||********************************/
 //delete a person from the database
-app.delete("/api/persons/:id", (request, response) => {
-  
+app.delete('/api/persons/:id', (request, response) => {
 
-Person.findByIdAndRemove(request.params.id)
-.then(result => {
-  console.log(result)
-  console.log('succesfully delted')
-  response.json(result)
-})
-.catch(error => console.log(error))
+  Person.findByIdAndRemove(request.params.id)
+    .then(result => {
+      console.log(result)
+      console.log('succesfully delted')
+      response.json(result)
+    })
+    .catch(error => console.log(error))
 
-//cant convert to number as mongodb atlas requires a string for the id
-// const id = Number(request.params.id); 
+  //cant convert to number as mongodb atlas requires a string for the id
+  // const id = Number(request.params.id);
   // persons = persons.filter((p) => p.id !== id);
 
   //response.status(204).end();
-});
+})
 
-/*************************|||||||||********************************/ 
+/*************************|||||||||********************************/
 //add a person to the database
-app.post("/api/persons", (request, response) => {
-  const body = request.body;
+app.post('/api/persons', (request, response, next) => {
+  const body = request.body
   if (!body.name) {
-    return response.status(400).json({ error: "missing name" });
+    return response.status(400).json({ error: 'missing name' })
   }
   if (!body.number) {
-    return response.status(400).json({ error: "missing number" });
+    return response.status(400).json({ error: 'missing number' })
   }
 
   /* if (persons.some((p) => p.name === body.name)) {
@@ -141,21 +137,27 @@ app.post("/api/persons", (request, response) => {
   const person = new Person({
     name: body.name,
     number: body.number,
-  });
+  })
 
-  person.save().then((savedPerson) => {
-    response.json(savedPerson);
+  //save person to the database
+  person.save()
+    .then((savedPerson) => {
+      response.json(savedPerson)
     // mongoose.connection.close();
-  });
+    })
+    .catch(error => {
+      console.log(error)
+      next(error)
+    })
 
   //   console.log(person);
   //persons = persons.concat(person);
   // response.json(person);
-});
+})
 
-/*************************|||||||||********************************/ 
+/*************************|||||||||********************************/
 //update a person on the database
-app.put("/api/persons/:id", (request, response) =>{
+app.put('/api/persons/:id', (request, response, next) => {
   const body =  request.body
 
   const update = {
@@ -164,26 +166,29 @@ app.put("/api/persons/:id", (request, response) =>{
   }
 
   //{new:true} is required for the response to return our updated entry and rerender the front end
-  Person.findByIdAndUpdate(request.params.id, update, {"new": "true"})
-  .then(updatedPerson => {
-    console.log(updatedPerson)
-    response.json(updatedPerson)
-  })
-  .catch(err => next(error))
+  Person.findByIdAndUpdate(request.params.id, update, { 'new': 'true' })
+    .then(updatedPerson => {
+      console.log(updatedPerson)
+      response.json(updatedPerson)
+    })
+    .catch(error => next(error))
 })
 
 //when an a page is not found show them a 404 error
 const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: "unknown endpoint" });
-};
+  response.status(404).send({ error: 'unknown endpoint' })
+}
 
-app.use(unknownEndpoint);
+app.use(unknownEndpoint)
 
-const errorHandler = (error, request, response, next)=>{
+const errorHandler = (error, request, response, next) => {
   console.error(error.message)
 
   if(error.name === 'CastError'){
-    return response.status(400).send({error:'malformatted id'})
+    return response.status(400).send({ error:'malformatted id' })
+  }
+  else if(error.name === 'ValidationError'){
+    return response.status(400).json({ error:error.message })
   }
 
   next(error)
@@ -191,8 +196,8 @@ const errorHandler = (error, request, response, next)=>{
 
 app.use(errorHandler)
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3001
 
 app.listen(PORT, () => {
-  console.log(`app is running on port ${PORT}`);
-});
+  console.log(`app is running on port ${PORT}`)
+})
