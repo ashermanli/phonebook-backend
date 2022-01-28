@@ -19,7 +19,7 @@ const personSchema = new mongoose.Schema({
 personSchema.plugin(uniqueValidator)
 
 //connection instance to db
-const connect = require('./../../db')
+const connect = require('./db')
 
 //transform received data for testing purposes
 personSchema.set('toJSON', {
